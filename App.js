@@ -1,27 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Button, Keyboard, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import axios from "axios"; 
 
 export default function App() {
-  const [fromAxios, setFromAxios] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [json, setJson] = useState(null)
+  const[json, setJson] = useState([]);
 
   const goAPIProsutos = () => {
-    setFromAxios(false);
-    setLoading(true);
+    
   
-    axios.get(`https:172.20.192.1:3000/produtos/`)
+    axios.get('http://localhost:3000/produtos')
       .then(response => {
         console.log(response.data);
-        setTimeout(() => {
-          setLoading(false);
+        if(response.data){
+
           setJson(response.data);
-          setFromAxios(true);
-          Keyboard.dismiss();
-          setOperacao(false);
-        }, 2000)
+        }
       })
       .catch(error => {
         console.log(error);
@@ -41,9 +35,10 @@ export default function App() {
           onPress={() => { goAPIProsutos() }}
           color='green'
         />
-        <Text>
-          {json}
-        </Text>
+        {json.map((produto) => {
+          console.log(produto);
+          <Text>{produto}</Text>
+        })}
       </View>
     </SafeAreaView>
   );
