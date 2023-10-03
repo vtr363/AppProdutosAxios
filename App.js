@@ -1,55 +1,83 @@
-import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { Button, Keyboard, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import axios from "axios"; 
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import axios from 'axios';
 
 export default function App() {
-  const[json, setJson] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const goAPIProsutos = () => {
-    
-  
-    axios.get('http://localhost:3000/produtos')
-      .then(response => {
-        console.log(response.data);
-        if(response.data){
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-          setJson(response.data);
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  }
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/produtos');
+      const data = response.data;
+      if (data) {
+        setProducts(data);
+      } else {
+        console.error('Invalid data format');
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const handleProductChange = (productId) => {
+    const selectedProduct = products.find((product) => product.id === productId);
+    setSelectedProduct(selectedProduct);
+  };
 
   return (
-    <SafeAreaView style={{top: 30}}>
-      <View style={{ margin: 18 }}>
-        {/* <TextInput
-          style={{ margin: 18 }}
-          onChangeText={(value) => setnomeProduto(value)}
-          placeholder="Entre com o CEP"
-        /> */}
-        <Button
-          title={'Mostrar produtos'}
-          onPress={() => { goAPIProsutos() }}
-          color='green'
-        />
-        {json.map((produto) => {
-          console.log(produto);
-          <Text>{produto}</Text>
-        })}
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Text style={styles.heading}>Menu de Produtos</Text>
+
+      {/* Picker */}
+      <Picker
+        selectedValue={selectedProduct ? selectedProduct.id : null}
+        onValueChange={(value) => handleProductChange(value)}
+        style={styles.picker}>
+        <Picker.Item label="Selecione um produto" value={null} />
+        {products.map((product) => (
+          <Picker.Item key={product.id} label={product.nome} value={product.id} />
+        ))}
+      </Picker>
+
+      {/* Display Product Details */}
+      {selectedProduct && (
+        <View style={styles.productDetailContainer}>
+          <Text style={styles.productDetailText}>Descrição: {selectedProduct.descricao}</Text>
+          <Text style={styles.productDetailText}>Preço: {selectedProduct.preco}</Text>
+          {/* Add more details as needed */}
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
     backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
   },
+  heading: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+    marginBottom: 16,
+  },
+  productDetailContainer: {
+    marginTop: 16,
+  },
+  productDetailText: {
+    fontSize: 16,
+  },
 });
-
