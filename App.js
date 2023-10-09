@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View, Text, Image, Dimensions } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
+
+import Carousel, { PaginationLight } from 'react-native-x-carousel';
+
+const { width } = Dimensions.get('window');
 
 export default function App() {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  
 
   useEffect(() => {
     fetchProducts();
@@ -29,6 +34,32 @@ export default function App() {
     const selectedProduct = products.find((product) => product.id === productId);
     setSelectedProduct(selectedProduct);
   };
+
+  const renderItem = data => (
+    <View
+      key={data.coverImageUri}
+      style={styles.cardContainer}
+    >
+      <View
+        style={styles.cardWrapper}
+      >
+        <Image
+          style={styles.card}
+          source={{ uri: data.coverImageUri }}
+        />
+        <View
+          style={[
+            styles.cornerLabel,
+            { backgroundColor: data.cornerLabelColor },
+          ]}
+        >
+          <Text style={styles.cornerLabelText}>
+            { data.cornerLabelText }
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -60,24 +91,36 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#fff',
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
+  cardContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width,
   },
-  picker: {
-    height: 50,
-    width: '100%',
-    marginBottom: 16,
+  cardWrapper: {
+    borderRadius: 8,
+    overflow: 'hidden',
   },
-  productDetailContainer: {
-    marginTop: 16,
+  card: {
+    width: width * 0.9,
+    height: width * 0.5,
   },
-  productDetailText: {
-    fontSize: 16,
+  cornerLabel: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    borderTopLeftRadius: 8,
+  },
+  cornerLabelText: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '600',
+    paddingLeft: 5,
+    paddingRight: 5,
+    paddingTop: 2,
+    paddingBottom: 2,
   },
 });
