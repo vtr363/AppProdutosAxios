@@ -1,65 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, Dimensions } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, Image,FlatList, Dimensions } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import axios from "axios";
 
-import Carousel, { PaginationLight } from 'react-native-x-carousel';
+import Carousel, { PaginationLight } from "react-native-x-carousel";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function App() {
   const [products, setProducts] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [selectedCategoria, setSelectedCategoria] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  
 
   useEffect(() => {
     fetchProducts();
+    fetchCategorias();
   }, []);
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/produtos');
+      const response = await axios.get("http://localhost:3000/produtos");
       const data = response.data;
-      if (data) {
-        setProducts(data);
-      } else {
-        console.error('Invalid data format');
-      }
+      setProducts(data);
+
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     }
   };
 
-  const handleProductChange = (productId) => {
-    const selectedProduct = products.find((product) => product.id === productId);
-    setSelectedProduct(selectedProduct);
+  const fetchCategorias = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/categorias");
+      const data = await response.data;
+      setCategorias(data);
+      console.log(categorias)
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   };
-
-  const renderItem = data => (
-    <View
-      key={data.coverImageUri}
-      style={styles.cardContainer}
-    >
-      <View
-        style={styles.cardWrapper}
-      >
-        <Image
-          style={styles.card}
-          source={{ uri: data.coverImageUri }}
-        />
-        <View
-          style={[
-            styles.cornerLabel,
-            { backgroundColor: data.cornerLabelColor },
-          ]}
-        >
-          <Text style={styles.cornerLabelText}>
-            { data.cornerLabelText }
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
+  const handleCategoriaChange = (categoriaId) => {
+    const selectedProduct = categorias.find(
+      (categoria) => categoria.id === categoriaId
+    );
+    setSelectedCategoria(selectedProduct);
+  };
 
   return (
     <View style={styles.container}>
@@ -67,23 +52,29 @@ export default function App() {
 
       {/* Picker */}
       <Picker
-        selectedValue={selectedProduct ? selectedProduct.id : null}
-        onValueChange={(value) => handleProductChange(value)}
-        style={styles.picker}>
+        selectedValue={selectedCategoria}
+        onValueChange={(value) => handleCategoriaChange(value)}
+        style={styles.picker}
+      >
         <Picker.Item label="Selecione um produto" value={null} />
-        {products.map((product) => (
-          <Picker.Item key={product.id} label={product.nome} value={product.id} />
+        {categorias.map((categoria) => (
+          <Picker.Item
+            key={categoria.id}
+            label={categoria.nome}
+            value={categoria.id}
+          />
         ))}
       </Picker>
-
-      {/* Display Product Details */}
-      {selectedProduct && (
-        <View style={styles.productDetailContainer}>
-          <Text style={styles.productDetailText}>Descrição: {selectedProduct.descricao}</Text>
-          <Text style={styles.productDetailText}>Preço: {selectedProduct.preco}</Text>
-          {/* Add more details as needed */}
-        </View>
-      )}
+      <FlatList
+        data={categorias}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            
+            <Text style={styles.nome}>{item.nome}</Text>
+          </View>
+        )}
+      />
     </View>
   );
 }
@@ -91,36 +82,27 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heading: {
+    
+    fontSize: 24,
+    fontWeight: 'bold',
+    paddingTop: 30,
+    marginBottom: 16,
+    
+  },item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'lightgray',
+    paddingVertical: 10,
   },
-  cardContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width,
-  },
-  cardWrapper: {
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  card: {
-    width: width * 0.9,
-    height: width * 0.5,
-  },
-  cornerLabel: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    borderTopLeftRadius: 8,
-  },
-  cornerLabelText: {
-    fontSize: 12,
-    color: '#fff',
-    fontWeight: '600',
-    paddingLeft: 5,
-    paddingRight: 5,
-    paddingTop: 2,
-    paddingBottom: 2,
+  nome: {
+    fontSize: 16,
   },
 });
